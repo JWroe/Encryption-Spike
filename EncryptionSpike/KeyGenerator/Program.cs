@@ -8,16 +8,14 @@ namespace KeyGenerator
     {
         static void Main(string[] args)
         {
-
             using (var rsa = new RSACryptoServiceProvider())
             {
                 var publicKey = rsa.ExportCspBlob(includePrivateParameters: false);
+                File.WriteAllBytes(@"..\..\..\output\public-key.rsa", publicKey);
                 var privateKey = rsa.ExportCspBlob(includePrivateParameters: true);
-                File.WriteAllBytes(@".\public-key.rsa", publicKey);
-                File.WriteAllBytes(@".\private-key.rsa", privateKey);
+                File.WriteAllBytes(@"..\..\..\output\private-key.rsa", privateKey);
             }
             Console.WriteLine("New keys generated. Press any key to exit.");
-            Console.ReadKey();
         }
     }
 }

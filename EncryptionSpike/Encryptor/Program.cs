@@ -7,9 +7,9 @@ namespace Encryptor
 {
     class Program
     {
-        private const string PublicKeyPath = @".\public-key.rsa";
-        private const string InputFilePath = @".\FakeFile.csv";
-        private const string OutputFilePath = @".\EncryptedFakeFile.csv.Encrypted";
+        private const string PublicKeyPath = @"..\..\..\output\public-key.rsa";
+        private const string InputFilePath = @"..\..\..\output\FakeFile.csv";
+        private const string OutputFilePath = @"..\..\..\output\FakeFile.Encrypted";
 
         static void Main(string[] args)
         {
@@ -17,25 +17,23 @@ namespace Encryptor
             watch.Start();
 
             var toEncrypt = File.ReadAllText(InputFilePath);
-            var encrypted = toEncrypt.AesEncrypt();
+            var aesEncryptionDetails = toEncrypt.AesEncrypt();
 
-            Console.WriteLine($"encrypted data in {watch.Elapsed}, encrypted data is {encrypted.CipherText.Length} bytes");
+            Console.WriteLine($"encrypted data in {watch.Elapsed}, encrypted data is {aesEncryptionDetails.CipherText.Length} bytes");
 
             watch.Restart();
 
             var publicRsaKey = File.ReadAllBytes(PublicKeyPath);
-            var encryptedAesKey = encrypted.Key.RsaEncrypt(publicRsaKey);
-            var outputFile = new byte[encrypted.CipherText.Length + encrypted.IV.Length + encryptedAesKey.Length];
+            var encryptedAesKey = aesEncryptionDetails.Key.RsaEncrypt(publicRsaKey);
+            var outFileBytes = new byte[aesEncryptionDetails.CipherText.Length + aesEncryptionDetails.IV.Length + encryptedAesKey.Length];
 
-            Array.Copy(encrypted.IV, 0, outputFile, 0, encrypted.IV.Length);
-            Array.Copy(encryptedAesKey, 0, outputFile, encrypted.IV.Length, encryptedAesKey.Length);
-            Array.Copy(encrypted.CipherText, 0, outputFile, encrypted.IV.Length + encryptedAesKey.Length, encrypted.CipherText.Length);
+            Array.Copy(aesEncryptionDetails.IV, outFileBytes, aesEncryptionDetails.IV.Length);
+            Array.Copy(encryptedAesKey, sourceIndex: 0, destinationArray: outFileBytes, destinationIndex: aesEncryptionDetails.IV.Length, length: encryptedAesKey.Length);
+            Array.Copy(aesEncryptionDetails.CipherText, sourceIndex: 0, destinationArray: outFileBytes, destinationIndex: encryptedAesKey.Length + aesEncryptionDetails.IV.Length, length: aesEncryptionDetails.CipherText.Length);
 
-            File.WriteAllBytes(OutputFilePath, encrypted.CipherText);
+            File.WriteAllBytes(OutputFilePath, outFileBytes);
 
             Console.WriteLine($"written encrypted data to output file in {watch.Elapsed}");
-
-            Console.ReadKey();
         }
     }
 }
